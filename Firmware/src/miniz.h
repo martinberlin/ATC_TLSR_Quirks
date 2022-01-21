@@ -134,7 +134,7 @@
 #define MINIZ_NO_ARCHIVE_WRITING_APIS
 
 /* Define MINIZ_NO_ZLIB_APIS to remove all ZLIB-style compression/decompression API's. */
-#define MINIZ_NO_ZLIB_APIS
+/* #define MINIZ_NO_ZLIB_APIS */
 
 /* Define MINIZ_NO_ZLIB_COMPATIBLE_NAME to disable zlib names, to prevent conflicts against stock zlib. */
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
@@ -143,12 +143,12 @@
    Note if MINIZ_NO_MALLOC is defined then the user must always provide custom user alloc/free/realloc
    callbacks to the zlib and archive API's, and a few stand-alone helper API's which don't provide custom user
    functions (such as tdefl_compress_mem_to_heap() and tinfl_decompress_mem_to_heap()) won't work. */
-/*#define MINIZ_NO_MALLOC */
+// #define MINIZ_NO_MALLOC
 
 #define MINIZ_NO_TIME
 
-
 #include <stddef.h>
+#include <mini_malloc.h> // malloc, free (custom)
 
 #if !defined(MINIZ_NO_TIME) && !defined(MINIZ_NO_ARCHIVE_APIS)
 #include <time.h>
@@ -480,6 +480,10 @@ typedef void *const voidpc;
     #include <stdint.h>
     #include <stdlib.h>
     #include <string.h>
+#else
+    // Needed by miniz in this MCU
+    #include <assert.h>
+    #include <stdint.h>
 #endif
 
 /* ------------------- Types and macros */
@@ -526,9 +530,9 @@ typedef struct mz_dummy_time_t_tag
 #define MZ_FREE(x) (void)x, ((void)0)
 #define MZ_REALLOC(p, x) NULL
 #else
-#define MZ_MALLOC(x) malloc(x)
-#define MZ_FREE(x) free(x)
-#define MZ_REALLOC(p, x) realloc(p, x)
+#define MZ_MALLOC(x) mini_malloc(x)
+#define MZ_FREE(x) mini_free(x)
+//#define MZ_REALLOC(p, x) realloc(p, x)
 #endif
 
 #define MZ_MAX(a, b) (((a) > (b)) ? (a) : (b))

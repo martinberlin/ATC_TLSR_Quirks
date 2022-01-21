@@ -14,6 +14,7 @@ $(OUT_PATH)/uart.o \
 $(OUT_PATH)/nfc.o \
 $(OUT_PATH)/tiffg4.o \
 $(OUT_PATH)/one_bit_display.o \
+$(OUT_PATH)/mini_malloc.o \
 $(OUT_PATH)/miniz.o \
 $(OUT_PATH)/main.o
 

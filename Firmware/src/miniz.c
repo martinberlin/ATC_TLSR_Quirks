@@ -25,6 +25,7 @@
  **************************************************************************/
 
 #include  "miniz.h"
+#include <string.h>      // mem*
 
 typedef unsigned char mz_validate_uint16[sizeof(mz_uint16) == 2 ? 1 : -1];
 typedef unsigned char mz_validate_uint32[sizeof(mz_uint32) == 4 ? 1 : -1];
@@ -160,17 +161,12 @@ void mz_free(void *p)
 void *miniz_def_alloc_func(void *opaque, size_t items, size_t size)
 {
     (void)opaque, (void)items, (void)size;
-    return MZ_MALLOC(items * size);
+    return mini_malloc(items * size);
 }
 void miniz_def_free_func(void *opaque, void *address)
 {
     (void)opaque, (void)address;
-    MZ_FREE(address);
-}
-void *miniz_def_realloc_func(void *opaque, void *address, size_t items, size_t size)
-{
-    (void)opaque, (void)address, (void)items, (void)size;
-    return MZ_REALLOC(address, items * size);
+    mini_free(address);
 }
 
 const char *mz_version(void)
@@ -2029,7 +2025,10 @@ static mz_bool tdefl_output_buffer_putter(const void *pBuf, int len, void *pUser
         {
             new_capacity = MZ_MAX(128U, new_capacity << 1U);
         } while (new_size > new_capacity);
-        pNew_buf = (mz_uint8 *)MZ_REALLOC(p->m_pBuf, new_capacity);
+        //pNew_buf = (mz_uint8 *)MZ_REALLOC(p->m_pBuf, new_capacity);
+        pNew_buf = (mz_uint8 *)MZ_MALLOC(new_capacity);
+        pNew_buf = p->m_pBuf;
+
         if (!pNew_buf)
             return MZ_FALSE;
         p->m_pBuf = pNew_buf;
@@ -2779,8 +2778,8 @@ tinfl_status tinfl_decompress(tinfl_decompressor *r, const mz_uint8 *pIn_buf_nex
         --pIn_buf_cur;
         num_bits -= 8;
     }
-    bit_buf &= (tinfl_bit_buf_t)((((mz_uint64)1) << num_bits) - (mz_uint64)1);
-    MZ_ASSERT(!num_bits); /* if this assert fires then we've read beyond the end of non-deflate/zlib streams with following data (such as gzip streams). */
+    bit_buf &= (tinfl_bit_buf_t)((((mz_uint32)1) << num_bits) - (mz_uint32)1);
+    //MZ_ASSERT(!num_bits); /* if this assert fires then we've read beyond the end of non-deflate/zlib streams with following data (such as gzip streams). */
 
     if (decomp_flags & TINFL_FLAG_PARSE_ZLIB_HEADER)
     {
@@ -2811,7 +2810,7 @@ common_exit:
         }
     }
     r->m_num_bits = num_bits;
-    r->m_bit_buf = bit_buf & (tinfl_bit_buf_t)((((mz_uint64)1) << num_bits) - (mz_uint64)1);
+    r->m_bit_buf = bit_buf & (tinfl_bit_buf_t)((((mz_uint32)1) << num_bits) - (mz_uint32)1);
     r->m_dist = dist;
     r->m_counter = counter;
     r->m_num_extra = num_extra;
@@ -2876,7 +2875,10 @@ void *tinfl_decompress_mem_to_heap(const void *pSrc_buf, size_t src_buf_len, siz
         new_out_buf_capacity = out_buf_capacity * 2;
         if (new_out_buf_capacity < 128)
             new_out_buf_capacity = 128;
-        pNew_buf = MZ_REALLOC(pBuf, new_out_buf_capacity);
+        //pNew_buf = MZ_REALLOC(pBuf, new_out_buf_capacity);
+        pNew_buf = MZ_MALLOC(new_out_buf_capacity);
+        pNew_buf = pBuf;
+
         if (!pNew_buf)
         {
             MZ_FREE(pBuf);

@@ -304,7 +304,19 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
 _attribute_ram_code_ void epd_display_miniz(uint8_t *pData, int iSize)
 {
     // deflate
-    
+    unsigned char *outBuffer;
+    mz_ulong uncomp_len = 0;
+    int cmp_status = mz_uncompress(
+				outBuffer, 
+				&uncomp_len, 
+				(const unsigned char*)pData, 
+				iSize);
+			
+    if (cmp_status == 0) {
+        EPD_Display(outBuffer, uncomp_len);
+    } else {
+        printf("miniz deflate failed with status %d\n", cmp_status);
+    }
 } /* epd_display_miniz() */
 
 _attribute_ram_code_ void epd_display(uint32_t time_is)
