@@ -46,8 +46,13 @@ int epd_ble_handle_write(void * p) {
 			memcpy(image + byte_pos, payload + 1, payload_len - 1);
 			byte_pos += payload_len - 1;
 			return 0;
-		case 0x04: // decode & display a TIFF image
+		// decode & display a TIFF image
+		case 0x04:
 			epd_display_tiff(image, byte_pos);
+			return 0;
+		// deflate & display a 1bpp image
+		case 0x05:
+			epd_display_miniz(image, byte_pos);
 			return 0;
 		default:
 			return 0;
