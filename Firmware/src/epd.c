@@ -9,6 +9,7 @@
 
 #include "OneBitDisplay.h"
 #include "TIFF_G4.h"
+#include "lzfx.h"
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
 #include "font_60.h"
@@ -299,6 +300,14 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     TIFF_close(&tiff);
     EPD_Display(epd_buffer, epd_buffer_size);
 } /* epd_display_tiff() */
+
+_attribute_ram_code_ void epd_display_deflate(uint8_t *pData, int iSize)
+{
+    unsigned int *olen = 0;
+    memset(epd_buffer, 0xff, epd_buffer_size); // clear to white
+    lzfx_decompress(pData, iSize, (void*) epd_buffer, olen);
+    EPD_Display(epd_buffer, epd_buffer_size);
+}
 
 _attribute_ram_code_ void epd_display(uint32_t time_is)
 {
