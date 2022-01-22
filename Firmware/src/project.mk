@@ -14,7 +14,6 @@ $(OUT_PATH)/uart.o \
 $(OUT_PATH)/nfc.o \
 $(OUT_PATH)/tiffg4.o \
 $(OUT_PATH)/one_bit_display.o \
-$(OUT_PATH)/lzfx.o \
 $(OUT_PATH)/main.o
 
 # Each subdirectory must supply rules for building sources it contributes

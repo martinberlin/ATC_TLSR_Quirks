@@ -9,7 +9,8 @@
 
 #include "OneBitDisplay.h"
 #include "TIFF_G4.h"
-#include "lzfx.h"
+#include "lzf_d.c"                  // LZF decompressor
+
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
 #include "font_60.h"
@@ -301,11 +302,31 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     EPD_Display(epd_buffer, epd_buffer_size);
 } /* epd_display_tiff() */
 
+// Just used to print short debug msgs (Should have smaller font)
+_attribute_ram_code_ void epd_debug(uint8_t n1,uint8_t n2,uint8_t n3)
+{
+    if (epd_update_state)
+        return;
+    obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
+    char buff[30];
+    sprintf(buff, "%x %x%x",n1, n2, n3);
+    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
+    FixBuffer(epd_temp, epd_buffer);
+}
+
 _attribute_ram_code_ void epd_display_deflate(uint8_t *pData, int iSize)
 {
-    unsigned int *olen = 0;
-    memset(epd_buffer, 0xff, epd_buffer_size); // clear to white
-    lzfx_decompress(pData, iSize, (void*) epd_buffer, olen);
+    memset(epd_buffer, 0x00, epd_buffer_size); // Black
+
+    // This is not writing the output to epd_buffer
+    int rc = lzf_decompress(pData, iSize, epd_buffer, epd_buffer_size);
+    if (rc<0) {
+      printf("lzfx failed status: %d\n", rc);
+      
+    } else {
+      printf("lzfx ok decomp size: %d\n", epd_buffer_size);
+    }
+    epd_debug(epd_buffer[0], epd_buffer[1], epd_buffer[2]);
     EPD_Display(epd_buffer, epd_buffer_size);
 }
 
