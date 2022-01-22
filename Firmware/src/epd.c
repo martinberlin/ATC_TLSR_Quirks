@@ -316,17 +316,16 @@ _attribute_ram_code_ void epd_debug(uint8_t n1,uint8_t n2,uint8_t n3)
 
 _attribute_ram_code_ void epd_display_deflate(uint8_t *pData, int iSize)
 {
-    memset(epd_buffer, 0x00, epd_buffer_size); // Black
-
-    // This is not writing the output to epd_buffer
+    //memset(epd_buffer, 0xFF, epd_buffer_size);
     int rc = lzf_decompress(pData, iSize, epd_buffer, epd_buffer_size);
     if (rc<0) {
-      printf("lzfx failed status: %d\n", rc);
-      
+      printf("LZF failed status:%d\n", rc);
+      epd_debug(0, 0, rc);
     } else {
-      printf("lzfx ok decomp size: %d\n", epd_buffer_size);
+      printf("LZF decompressed OK");
     }
-    epd_debug(epd_buffer[0], epd_buffer[1], epd_buffer[2]);
+    // Uncomment to preview first 3 bytes of the uncompressed data
+    //epd_debug(epd_buffer[0], epd_buffer[1], epd_buffer[2]);
     EPD_Display(epd_buffer, epd_buffer_size);
 }
 
