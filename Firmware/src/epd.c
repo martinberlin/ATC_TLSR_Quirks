@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdarg.h>
 #include "tl_common.h"
 #include "main.h"
 #include "epd.h"
@@ -14,6 +15,7 @@
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
 #include "font_60.h"
+#include "font_9pt7b.h"
 
 RAM uint8_t epd_update_state = 0;
 
@@ -302,30 +304,27 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     EPD_Display(epd_buffer, epd_buffer_size);
 } /* epd_display_tiff() */
 
-// Just used to print short debug msgs (Should have smaller font)
-_attribute_ram_code_ void epd_debug(uint8_t n1,uint8_t n2,uint8_t n3)
+_attribute_ram_code_ void epd_debug(const char *fmt, ...)
 {
     if (epd_update_state)
         return;
+    va_list a_list;
     obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
-    char buff[30];
-    sprintf(buff, "%x %x%x",n1, n2, n3);
-    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
+    char debug[40];
+    sprintf(debug, fmt , a_list);
+    obdWriteStringCustom(&obd, (GFXfont *)&font9pt7b, 10, 20, (char *)debug, 1);
     FixBuffer(epd_temp, epd_buffer);
 }
 
 _attribute_ram_code_ void epd_display_deflate(uint8_t *pData, int iSize)
 {
-    //memset(epd_buffer, 0xFF, epd_buffer_size);
     int rc = lzf_decompress(pData, iSize, epd_buffer, epd_buffer_size);
     if (rc<0) {
-      printf("LZF failed status:%d\n", rc);
-      epd_debug(0, 0, rc);
+      printf("LZF deflate error:%d\n", rc);
+      epd_debug("LZF deflate error:%d", rc); 
     } else {
       printf("LZF decompressed OK");
     }
-    // Uncomment to preview first 3 bytes of the uncompressed data
-    //epd_debug(epd_buffer[0], epd_buffer[1], epd_buffer[2]);
     EPD_Display(epd_buffer, epd_buffer_size);
 }
 
